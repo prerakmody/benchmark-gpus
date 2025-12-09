@@ -9,7 +9,7 @@ import numpy as np
 from tqdm import tqdm
 import os
 import monai
-from monai.networks.nets import BasicUNet
+from monai.networks.nets import BasicUNet, UNet
 
 # --- Dataset ---
 class Random3DDataset(Dataset):
@@ -92,7 +92,7 @@ def main():
         print(f"GPU: {torch.cuda.get_device_name(0)}")
         
     print(f"Volume Size: {args.volume_size}")
-    print(f"Model: {args.depth} depth, {args.filters} filters (MONAI BasicUNet)")
+    print(f"Model: {args.depth} depth, {args.filters} filters (MONAI UNet)")
     print(f"Training: {args.epochs} epochs, {args.iters} iters/epoch, batch {args.batch_size}")
     print(f"Inference: {args.inference_iters} iters, batch {args.batch_size}")
     print(f"---------------------")
@@ -101,25 +101,26 @@ def main():
     dataset = Random3DDataset(args.iters * args.batch_size, tuple(args.volume_size))
     dataloader = DataLoader(dataset, batch_size=args.batch_size, num_workers=4, pin_memory=True)
     
-    # Model
-    # MONAI BasicUNet relies on spatial_dims=3 by default if not specified, but let's be explicit if needed.
-    # Actually BasicUNet signature: (spatial_dims: int, in_channels: int, out_channels: int, features: Sequence[int] = (32, 32, 64, 128, 256, 32), ...)
-    # functionality of "depth" maps to length of features list.
-    # If user passes depth=3 and filters=16, we should construct features list accordingly e.g. [16, 32, 64, 128].
+    # Construct channels and strides for UNet based on depth and filters
+    # depth=3 means 3 downsampling layers.
+    # We need len(channels) = depth + 1 (bottom layer) + ? BasicUNet had 6 layers fixed.
+    # Standard UNet:
+    # channels needs to encompass the encoder path.
+    # strides needs to be len(channels) - 1.
     
-    # Construct features list based on depth and filters
-    features = [args.filters * (2**i) for i in range(args.depth + 1)] # +1 for bottleneck roughly?
-    # BasicUNet documentation says: features: number of features at each layer.
-    # Typically len(features) determines depth.
-    # "depth" typically means number of downsamples.
-    # If depth=3, we probably want 4 levels of features? [16, 32, 64, 128]
-    # Let's match typical UNet behavior: depth=3 means 3 downsamples.
+    # Let's say depth=3. We want 3 downsamples.
+    # channels: [base, base*2, base*4, base*8] -> 4 levels.
+    # strides: [2, 2, 2] -> 3 downsamples.
     
-    model = BasicUNet(
+    channels = [args.filters * (2**i) for i in range(args.depth + 1)]
+    strides = [2] * args.depth
+    
+    model = UNet(
         spatial_dims=3,
         in_channels=1,
         out_channels=2,
-        features=tuple(features)
+        channels=tuple(channels),
+        strides=tuple(strides)
     )
     model.to(args.device)
     
