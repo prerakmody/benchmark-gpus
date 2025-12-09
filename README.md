@@ -33,3 +33,22 @@ Inference Results:
   Latency    : 1486.21 ms/batch
 ========================================
 ```
+
+```bash
+========================================
+       3D SEGMENTATION BENCHMARK REPORT
+========================================
+GPU: NVIDIA RTX PRO 6000 Blackwell Server Edition
+Peak Memory: 685.03 MB
+Volume: [64, 64, 64]
+Batch Size: 2
+
+Training Results (Avg over 2 epochs):
+  Throughput : 44.58 volumes/sec
+  Latency    : 36.31 ms/batch
+
+Inference Results:
+  Throughput : 243.67 volumes/sec
+  Latency    : 8.21 ms/batch
+========================================
+```
