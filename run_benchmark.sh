@@ -9,7 +9,7 @@ EPOCHS=2
 ITERS=20
 INFERENCE_ITERS=20
 BATCH_SIZE=2
-DEPTH=3
+DEPTH=4
 FILTERS=16
 CLEANUP=false
 
@@ -49,7 +49,7 @@ fi
 source .venv/bin/activate
 
 echo "Installing dependencies..."
-uv pip install torch numpy tqdm monai
+uv pip install torch numpy tqdm monai torchsummary
 
 # 3. Run Benchmark
 echo "=== Running Benchmark ==="

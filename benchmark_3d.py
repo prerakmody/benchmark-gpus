@@ -10,6 +10,7 @@ from tqdm import tqdm
 import os
 import monai
 from monai.networks.nets import BasicUNet, UNet
+from torchsummary import summary
 
 # --- Dataset ---
 class Random3DDataset(Dataset):
@@ -123,12 +124,25 @@ def main():
         strides=tuple(strides)
     )
     model.to(args.device)
+
+    # --- Model Summary and Param Count ---
+    try:
+        from torchsummary import summary
+        print("\n--- Model Summary ---")
+        # torchsummary requires input size (C, D, H, W) without batch dimension
+        # The input volume size is args.volume_size (D, H, W)
+        summary(model, (1, *args.volume_size))
+    except ImportError:
+        print("torchsummary not installed, skipping detailed summary.")
+    except Exception as e:
+        print(f"Failed to run torchsummary: {e}")
+
+    total_params = sum(p.numel() for p in model.parameters())
+    param_status = "> 1M" if total_params > 1000000 else "< 1M"
+    print(f"Total Parameters: {total_params:,} ({param_status})") 
     
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
-    
-    # Timing
-    scaler = torch.cuda.amp.GradScaler() 
     
     # --- Training Loop ---
     training_metrics = []
