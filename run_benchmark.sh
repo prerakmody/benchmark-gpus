@@ -49,7 +49,7 @@ fi
 source .venv/bin/activate
 
 echo "Installing dependencies..."
-uv pip install torch numpy tqdm
+uv pip install torch numpy tqdm monai
 
 # 3. Run Benchmark
 echo "=== Running Benchmark ==="
@@ -60,7 +60,8 @@ python benchmark_3d.py \
     --inference_iters $INFERENCE_ITERS \
     --batch_size $BATCH_SIZE \
     --depth $DEPTH \
-    --filters $FILTERS
+    --filters $FILTERS \
+    $( [ "$CLEANUP" = true ] && echo "--cleanup" )
 
 # 4. Optional Cleanup
 if [ "$CLEANUP" = true ]; then
