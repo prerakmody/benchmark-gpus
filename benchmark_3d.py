@@ -236,6 +236,7 @@ def main():
     # --- Final Report ---
     print("\n" + "="*40)
     print("       3D SEGMENTATION BENCHMARK REPORT       ")
+    print(f"       (Parameters: {total_params/1e6:.2f}M)")
     print("="*40)
     
     if torch.cuda.is_available():
